@@ -1,7 +1,7 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Course.Monad where
 
@@ -11,7 +11,7 @@ import Course.ExactlyOne
 import Course.Functor
 import Course.List
 import Course.Optional
-import qualified Prelude as P((=<<))
+import qualified Prelude as P ((=<<))
 
 -- | All instances of the `Monad` type-class must satisfy one law. This law
 -- is not checked by the compiler. This law is given as:
@@ -21,9 +21,9 @@ import qualified Prelude as P((=<<))
 class Applicative f => Monad f where
   -- Pronounced, bind.
   (=<<) ::
-    (a -> f b)
-    -> f a
-    -> f b
+    (a -> f b) ->
+    f a ->
+    f b
 
 infixr 1 =<<
 
@@ -33,9 +33,9 @@ infixr 1 =<<
 -- ExactlyOne 3
 instance Monad ExactlyOne where
   (=<<) ::
-    (a -> ExactlyOne b)
-    -> ExactlyOne a
-    -> ExactlyOne b
+    (a -> ExactlyOne b) ->
+    ExactlyOne a ->
+    ExactlyOne b
   f =<< (ExactlyOne a) = f a
 
 -- | Binds a function on a List.
@@ -44,11 +44,10 @@ instance Monad ExactlyOne where
 -- [1,1,2,2,3,3]
 instance Monad List where
   (=<<) ::
-    (a -> List b)
-    -> List a
-    -> List b
+    (a -> List b) ->
+    List a ->
+    List b
   f =<< l = flatMap f l
-    
 
 -- | Binds a function on an Optional.
 --
@@ -56,12 +55,11 @@ instance Monad List where
 -- Full 14
 instance Monad Optional where
   (=<<) ::
-    (a -> Optional b)
-    -> Optional a
-    -> Optional b
+    (a -> Optional b) ->
+    Optional a ->
+    Optional b
   f =<< Full a = f a
-  f =<< Empty= Empty
-
+  _ =<< Empty = Empty
 
 -- | Binds a function on the reader ((->) t).
 --
@@ -69,9 +67,9 @@ instance Monad Optional where
 -- 119
 instance Monad ((->) t) where
   (=<<) ::
-    (a -> ((->) t b))
-    -> ((->) t a)
-    -> ((->) t b)
+    (a -> ((->) t b)) ->
+    ((->) t a) ->
+    ((->) t b)
   f =<< h = \x -> f (h x) x
 
 -- | Witness that all things with (=<<) and (<$>) also have (<*>).
@@ -107,11 +105,10 @@ instance Monad ((->) t) where
 -- 15
 (<**>) ::
   Monad f =>
-  f (a -> b)
-  -> f a
-  -> f b
-(<**>) f x = (\a -> (\b -> return (a b)) =<< x ) =<< f
-  
+  f (a -> b) ->
+  f a ->
+  f b
+(<**>) f x = (<$> x) =<< f
 
 infixl 4 <**>
 
@@ -130,10 +127,9 @@ infixl 4 <**>
 -- 14
 join ::
   Monad f =>
-  f (f a)
-  -> f a
-join mm =  (\x -> x) =<< mm 
-  
+  f (f a) ->
+  f a
+join mm = id =<< mm
 
 -- | Implement a flipped version of @(=<<)@, however, use only
 -- @join@ and @(<$>)@.
@@ -143,9 +139,9 @@ join mm =  (\x -> x) =<< mm
 -- 119
 (>>=) ::
   Monad f =>
-  f a
-  -> (a -> f b)
-  -> f b
+  f a ->
+  (a -> f b) ->
+  f b
 x >>= f = join (f <$> x)
 
 infixl 1 >>=
@@ -157,10 +153,10 @@ infixl 1 >>=
 -- [2,2,3,3]
 (<=<) ::
   Monad f =>
-  (b -> f c)
-  -> (a -> f b)
-  -> a
-  -> f c
+  (b -> f c) ->
+  (a -> f b) ->
+  a ->
+  f c
 (<=<) f1 f2 x = f2 x >>= f1
 
 infixr 1 <=<
